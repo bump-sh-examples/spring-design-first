@@ -1,0 +1,71 @@
+
+name: Check & deploy API documentation
+permissions:
+  contents: read
+  pull-requests: write
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  deploy-doc:
+    if: ${{ github.event_name == 'push' }}
+    name: Deploy API documentation on Bump.sh
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build and run the application
+        run: |
+          mvn clean spring-boot:run &
+
+      - name: Wait for the application to start
+        run: sleep 30
+
+      - name: Deploy API documentation
+        uses: bump-sh/github-action@v1
+        with:
+          doc: spring-design-first
+          token: "${{secrets.BUMP_TOKEN}}"
+          file: http://localhost:8080/openapi
+
+  api-diff:
+    if: ${{ github.event_name == 'pull_request' }}
+    name: Check API diff on Bump.sh
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build and run the application
+        run: |
+          mvn clean spring-boot:run &
+
+      - name: Wait for the application to start
+        run: sleep 30
+
+      - name: Comment pull request with API diff
+        uses: bump-sh/github-action@v1
+        with:
+          doc: spring-design-first
+          token: "${{secrets.BUMP_TOKEN}}"
+          file: http://localhost:8080/openapi
+          command: diff
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

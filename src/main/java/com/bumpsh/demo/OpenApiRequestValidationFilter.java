@@ -5,15 +5,18 @@ import java.io.IOException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.erosb.kappa.core.exception.ResolutionException;
 import com.github.erosb.kappa.core.validation.ValidationException;
 import com.github.erosb.kappa.operation.validator.adapters.server.servlet.JakartaServletRequest;
 import com.github.erosb.kappa.operation.validator.adapters.server.servlet.MemoizingServletRequest;
+import com.github.erosb.kappa.operation.validator.model.Request;
 import com.github.erosb.kappa.operation.validator.validation.RequestValidator;
 import com.github.erosb.kappa.parser.OpenApi3Parser;
 import com.github.erosb.kappa.parser.model.v3.OpenApi3;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,9 +25,17 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class OpenApiRequestValidationFilter implements Filter {
   // reading the OpenAPI description of our API
-  private final OpenApi3 api = new OpenApi3Parser().parse(getClass().getResource("/api/openapi.yaml"), false);
+  private final OpenApi3 api;
 
-  @Override
+    {
+        try {
+            api = new OpenApi3Parser().parse(getClass().getResource("/api/openapi.yaml"), false);
+        } catch (ResolutionException | ValidationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
   public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws IOException {
     HttpServletRequest httpReq = (HttpServletRequest) req;
     HttpServletResponse httpResp = (HttpServletResponse) resp;
@@ -42,7 +53,7 @@ public class OpenApiRequestValidationFilter implements Filter {
       // Kappa can understand different representations of HTTP requests and responses
       // here we use the Servlet API specific adapter of Kappa, to get a Kappa Request instance
       // which wraps a HttpServletRequest
-      JakartaServletRequest jakartaRequest = JakartaServletRequest.of(memoizedReq);
+      Request jakartaRequest = JakartaServletRequest.of(memoizedReq);
 
       // we do the validation
       new RequestValidator(api).validate(jakartaRequest);
@@ -60,7 +71,7 @@ public class OpenApiRequestValidationFilter implements Filter {
         ObjectNode itemJson = objectMapper.createObjectNode();
         itemJson.put("dataLocation", item.describeInstanceLocation());
         itemJson.put("schemaLocation", item.describeSchemaLocation());
-        itemJson.put("message", item.message);
+        itemJson.put("message", item.getMessage());
         itemsJson.add(itemJson);
       });
       respObj.put("errors", itemsJson);
@@ -69,6 +80,8 @@ public class OpenApiRequestValidationFilter implements Filter {
         .writerWithDefaultPrettyPrinter()
         .writeValueAsString(respObj)
       );
+    } catch (ServletException e) {
+        throw new RuntimeException(e);
     }
   }
 }

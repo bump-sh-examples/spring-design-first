@@ -1,35 +1,164 @@
 openapi: 3.1.0
 info:
-  version: 0.0.1
-  title: employee API
+  title: OpenAPI definition
+  version: v1.0.0
+  description: This is a sample OpenAPI definition for employee management operations.
+  termsOfService: http://example.com/terms/
+servers:
+- url: http://localhost:8080
+  description: Development server
+tags:
+- name: Employee Management
+  description: Operations related to employee management
 paths:
-  /employees:
+  "/employees/{id}":
     get:
-      description: get employee list
+      tags:
+      - Employee Management
+      summary: Get an employee by ID
+      description: Returns the details of an employee based on the provided ID
+      operationId: one
+      parameters:
+      - name: id
+        in: path
+        description: ID of the employee to retrieve
+        required: true
+        schema:
+          type: integer
       responses:
+        '404':
+          description: Not Found
+          content:
+            "*/*":
+              schema:
+                type: string
         '200':
+          description: Successful operation
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Employee"
-    post:
-      requestBody:
+                "$ref": "#/components/schemas/Employee"
+    put:
+      tags:
+      - Employee Management
+      summary: Update an existing employee
+      description: Updates the details of an employee based on the provided ID
+      operationId: replaceEmployee
+      parameters:
+      - name: id
+        in: path
         required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Employee"
+              "$ref": "#/components/schemas/Employee"
+        required: true
+      responses:
+        '404':
+          description: Not Found
+          content:
+            "*/*":
+              schema:
+                type: string
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/Employee"
+    delete:
+      tags:
+      - Employee Management
+      summary: Delete an employee
+      description: Removes an employee from the system based on the provided ID
+      operationId: deleteEmployee
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '404':
+          description: Not Found
+          content:
+            "*/*":
+              schema:
+                type: string
+        '200':
+          description: OK
+  "/employees":
+    get:
+      tags:
+      - Employee Management
+      summary: Get all employees
+      description: Returns a list of all employees
+      operationId: all
+      responses:
+        '404':
+          description: Not Found
+          content:
+            "*/*":
+              schema:
+                type: string
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/Employee"
+    post:
+      tags:
+      - Employee Management
+      summary: Create a new employee
+      description: Adds a new employee to the system
+      operationId: newEmployee
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Employee"
+        required: true
+      responses:
+        '404':
+          description: Not Found
+          content:
+            "*/*":
+              schema:
+                type: string
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/Employee"
 components:
   schemas:
     Employee:
       type: object
-      additionalProperties: false
+      description: Employees are individuals who work for an organization, contributing
+        their skills and expertise to achieve the organization's goals.Roles are the
+        specific functions or positions that employees occupy within the organization,
+        defining their duties, responsibilities, and the scope of their work.
       properties:
         id:
           type: integer
+          format: int64
+          description: Unique identifier which should not be shared publicly
+          example: 1234
+          readOnly: true
         name:
           type: string
+          description: Employee name
+          example: Bilbo Baggins
         role:
           type: string
+          description: Employee role
+          example: Software Engineer

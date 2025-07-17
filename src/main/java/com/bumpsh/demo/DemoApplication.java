@@ -65,13 +65,6 @@ class RFC9457FailureSender
             ObjectNode error = objectMapper.createObjectNode();
             error.put("message", item.getMessage());
             error.put("dataLocation", item.describeInstanceLocation());
-            String schemaLocation = item.describeSchemaLocation();
-            int openapiDirIndex = schemaLocation.lastIndexOf("openapi/");
-            if (openapiDirIndex >= 0) {
-                error.put("schemaLocation", schemaLocation.substring(openapiDirIndex));
-            } else {
-                error.put("schemaLocation", schemaLocation);
-            }
             if (item instanceof OpenApiValidationFailure.SchemaValidationFailure) {
                 OpenApiValidationFailure.SchemaValidationFailure schemaValidationFailure = (OpenApiValidationFailure.SchemaValidationFailure) item;
                 error.put("dynamicPath", schemaValidationFailure.getFailure().getDynamicPath().getPointer().toString());

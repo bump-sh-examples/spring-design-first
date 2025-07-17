@@ -12,7 +12,7 @@ class EmployeeNotFoundAdvice {
 
 	@ExceptionHandler(EmployeeNotFoundException.class)
 	@ResponseStatus(HttpStatus.NOT_FOUND)
-	ErrorResponse employeeNotFoundHandler(EmployeeNotFoundException ex) {
-		return new ErrorResponse(ex.getMessage());
+	Object employeeNotFoundHandler(EmployeeNotFoundException ex) {
+		return ex.getMessage();
 	}
 }

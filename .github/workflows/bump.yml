@@ -24,7 +24,7 @@ jobs:
         with:
           doc: spring-design-first
           token: "${{secrets.BUMP_TOKEN}}"
-          file: src/main/resources/api/openapi.yaml
+          file: src/main/resources/openapi/openapi.yaml
 
   api-diff:
     if: ${{ github.event_name == 'pull_request' }}
@@ -39,7 +39,7 @@ jobs:
         with:
           doc: spring-design-first
           token: "${{secrets.BUMP_TOKEN}}"
-          file: src/main/resources/api/openapi.yaml
+          file: src/main/resources/openapi/openapi.yaml
           command: diff
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

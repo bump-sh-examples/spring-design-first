@@ -30,7 +30,7 @@ public class DemoApplication {
     public KappaSpringConfiguration kappaSpringConfiguration() {
         KappaSpringConfiguration kappaConfig = new KappaSpringConfiguration();
         var pathPatternToOpenapiDescription = new LinkedHashMap<String, String>();
-        pathPatternToOpenapiDescription.put("/**", "/api/openapi.yaml");
+        pathPatternToOpenapiDescription.put("/**", "/openapi/openapi.yaml");
         kappaConfig.setOpenapiDescriptions(pathPatternToOpenapiDescription);
         kappaConfig.setValidationFailureSender(new RFC9457FailureSender());
         return kappaConfig;

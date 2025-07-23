@@ -32,49 +32,8 @@ public class DemoApplication {
         var pathPatternToOpenapiDescription = new LinkedHashMap<String, String>();
         pathPatternToOpenapiDescription.put("/**", "/openapi/openapi.yaml");
         kappaConfig.setOpenapiDescriptions(pathPatternToOpenapiDescription);
-        kappaConfig.setValidationFailureSender(new RFC9457FailureSender());
+        kappaConfig.setValidationFailureSender(ValidationFailureSender.rfc9457Sender());
         return kappaConfig;
     }
 
-}
-
-class RFC9457FailureSender
-        implements ValidationFailureSender {
-
-    private final String typeAttributeValue;
-
-    public RFC9457FailureSender() {
-        this("https://erosb.github.io/kappa/request-validation-failure");
-    }
-
-    public RFC9457FailureSender(String typeAttributeValue) {
-        this.typeAttributeValue = requireNonNull(typeAttributeValue);
-    }
-
-    @Override
-    public void send(ValidationException ex, HttpServletResponse httpResp)
-            throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode respObj = objectMapper.createObjectNode();
-        ArrayNode errors = objectMapper.createArrayNode();
-        respObj.put("type", typeAttributeValue);
-        respObj.put("status", 400);
-        respObj.put("title", "Validation failure");
-        respObj.put("detail", ex.getMessage());
-        ex.results().forEach(item -> {
-            ObjectNode error = objectMapper.createObjectNode();
-            error.put("message", item.getMessage());
-            error.put("dataLocation", item.describeInstanceLocation());
-            if (item instanceof OpenApiValidationFailure.SchemaValidationFailure) {
-                OpenApiValidationFailure.SchemaValidationFailure schemaValidationFailure = (OpenApiValidationFailure.SchemaValidationFailure) item;
-                error.put("dynamicPath", schemaValidationFailure.getFailure().getDynamicPath().getPointer().toString());
-            }
-            errors.add(error);
-        });
-        respObj.put("errors", errors);
-
-        httpResp.setStatus(400);
-        httpResp.getWriter().print(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(respObj));
-        httpResp.flushBuffer();
-    }
 }
